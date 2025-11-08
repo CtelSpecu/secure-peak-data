@@ -83,10 +83,11 @@ export default function Home() {
           title: "Entry Created",
           description: "Consumption record has been added to the blockchain",
         });
-      } catch {
+      } catch (error) {
+        console.error("Create entry error:", error);
         toast({
           title: "Error",
-          description: "Failed to create entry. Please try again.",
+          description: error instanceof Error ? error.message : "Failed to create entry. Please try again.",
           variant: "destructive",
         });
       }
@@ -111,10 +112,11 @@ export default function Home() {
           title: "Decryption Complete",
           description: "Record data has been decrypted",
         });
-      } catch {
+      } catch (error) {
+        console.error("Decrypt error:", error);
         toast({
           title: "Error",
-          description: "Failed to decrypt record. Please try again.",
+          description: error instanceof Error ? error.message : "Failed to decrypt record. Please try again.",
           variant: "destructive",
         });
       }
