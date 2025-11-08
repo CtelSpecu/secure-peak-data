@@ -146,18 +146,10 @@ export const useSecurePeakData = (parameters: {
 
         if (exists && sameChain.current(thisChainId)) {
           const date = new Date(Number(timestamp) * 1000);
-          const timeStr = date.toLocaleTimeString("en-US", {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-          });
-          const dateStr = date.toLocaleString("en-US", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-          });
+          // Use fixed format to avoid locale issues
+          const pad = (n: number) => n.toString().padStart(2, "0");
+          const timeStr = `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+          const dateStr = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${timeStr}`;
 
           newRecords.push({
             id: i,
@@ -198,8 +190,14 @@ export const useSecurePeakData = (parameters: {
   const createRecord = useCallback(
     async (consumption: number, isPeak: boolean) => {
       if (isCreatingRef.current) return;
-      if (!contractInfo.address || !instance || !ethersSigner) {
-        throw new Error("Contract or signer not available");
+      if (!contractInfo.address) {
+        throw new Error("Contract not deployed on this network");
+      }
+      if (!instance) {
+        throw new Error("FHEVM instance not ready. Please wait for initialization.");
+      }
+      if (!ethersSigner) {
+        throw new Error("Wallet signer not available. Please connect your wallet.");
       }
 
       isCreatingRef.current = true;
@@ -291,8 +289,14 @@ export const useSecurePeakData = (parameters: {
   const decryptRecord = useCallback(
     async (recordId: number) => {
       if (isDecryptingRef.current) return;
-      if (!contractInfo.address || !instance || !ethersSigner) {
-        throw new Error("Contract or signer not available");
+      if (!contractInfo.address) {
+        throw new Error("Contract not deployed on this network");
+      }
+      if (!instance) {
+        throw new Error("FHEVM instance not ready. Please wait for initialization.");
+      }
+      if (!ethersSigner) {
+        throw new Error("Wallet signer not available. Please connect your wallet.");
       }
 
       isDecryptingRef.current = true;
@@ -334,8 +338,16 @@ export const useSecurePeakData = (parameters: {
         );
 
         // Get encrypted handles
-        const consumptionHandle = await contract.getRecordConsumption(recordId);
-        const isPeakHandle = await contract.getRecordIsPeak(recordId);
+        const consumptionHandleRaw = await contract.getRecordConsumption(recordId);
+        const isPeakHandleRaw = await contract.getRecordIsPeak(recordId);
+
+        // Convert bigint handles to hex strings (required by userDecrypt)
+        const consumptionHandle = typeof consumptionHandleRaw === "bigint" 
+          ? "0x" + consumptionHandleRaw.toString(16).padStart(64, "0")
+          : consumptionHandleRaw;
+        const isPeakHandle = typeof isPeakHandleRaw === "bigint"
+          ? "0x" + isPeakHandleRaw.toString(16).padStart(64, "0")
+          : isPeakHandleRaw;
 
         if (isStale()) {
           setMessage("Operation cancelled - context changed");

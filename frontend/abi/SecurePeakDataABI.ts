@@ -45,13 +45,13 @@ export const SecurePeakDataABI = {
         {
           internalType: "externalEuint32",
           name: "encryptedConsumption",
-          type: "uint256",
+          type: "bytes32",
         },
         { internalType: "bytes", name: "consumptionProof", type: "bytes" },
         {
           internalType: "externalEuint32",
           name: "encryptedIsPeak",
-          type: "uint256",
+          type: "bytes32",
         },
         { internalType: "bytes", name: "isPeakProof", type: "bytes" },
       ],
@@ -66,7 +66,7 @@ export const SecurePeakDataABI = {
         {
           internalType: "externalEuint32",
           name: "encryptedConsumption",
-          type: "uint256",
+          type: "bytes32",
         },
         { internalType: "bytes", name: "consumptionProof", type: "bytes" },
       ],
@@ -81,7 +81,7 @@ export const SecurePeakDataABI = {
         {
           internalType: "externalEuint32",
           name: "encryptedIsPeak",
-          type: "uint256",
+          type: "bytes32",
         },
         { internalType: "bytes", name: "isPeakProof", type: "bytes" },
       ],
