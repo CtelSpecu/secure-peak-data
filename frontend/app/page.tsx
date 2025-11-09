@@ -124,41 +124,11 @@ export default function Home() {
     [isConnected, decryptRecord]
   );
 
-  // Use contract data if available, otherwise use initial data
+  // Use contract data if available, otherwise show empty state
   const displayGraphData =
     graphData.length > 0 ? graphData : initialGraphData;
-  const displayRecords: ConsumptionRecord[] =
-    records.length > 0
-      ? records
-      : [
-          {
-            id: 0,
-            timestamp: "2025-01-15 08:00",
-            consumption: 920,
-            peak: true,
-            reason: "Morning industrial surge",
-            encrypted: true,
-            isDecrypted: false,
-          },
-          {
-            id: 1,
-            timestamp: "2025-01-15 12:00",
-            consumption: 1100,
-            peak: true,
-            reason: "Peak demand period",
-            encrypted: true,
-            isDecrypted: false,
-          },
-          {
-            id: 2,
-            timestamp: "2025-01-15 16:00",
-            consumption: 850,
-            peak: false,
-            reason: "Standard operation",
-            encrypted: false,
-            isDecrypted: true,
-          },
-        ];
+  const displayRecords: ConsumptionRecord[] = records;
+  const hasRealRecords = records.length > 0;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

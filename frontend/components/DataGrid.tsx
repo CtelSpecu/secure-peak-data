@@ -134,7 +134,15 @@ const DataGrid = ({ data, onDecrypt, isDecrypting }: DataGridProps) => {
         </table>
       </div>
 
-      {!isConnected && (
+      {data.length === 0 && (
+        <div className="mt-4 p-8 text-center">
+          <p className="text-muted-foreground">
+            No records found. Create your first consumption entry to get started.
+          </p>
+        </div>
+      )}
+
+      {!isConnected && data.length > 0 && (
         <div className="mt-4 p-4 bg-secondary rounded-lg border border-border">
           <p className="text-sm text-muted-foreground flex items-center gap-2">
             <Lock className="w-4 h-4" />
