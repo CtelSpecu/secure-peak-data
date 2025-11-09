@@ -110,12 +110,20 @@ export const useSecurePeakData = (parameters: {
 
   // Refresh records from contract
   const refreshRecords = useCallback(async () => {
-    if (isRefreshingRef.current) return;
+    console.log("[refreshRecords] called, isRefreshing:", isRefreshingRef.current);
+    console.log("[refreshRecords] contractRef:", contractRef.current?.address, "chainId:", contractRef.current?.chainId);
+    console.log("[refreshRecords] ethersReadonlyProvider:", !!ethersReadonlyProvider);
+    
+    if (isRefreshingRef.current) {
+      console.log("[refreshRecords] already refreshing, skipping");
+      return;
+    }
     if (
       !contractRef.current?.address ||
       !contractRef.current?.chainId ||
       !ethersReadonlyProvider
     ) {
+      console.log("[refreshRecords] missing dependencies, clearing records");
       setRecords([]);
       setGraphData([]);
       return;
@@ -128,14 +136,44 @@ export const useSecurePeakData = (parameters: {
     const thisAddress = contractRef.current.address;
 
     try {
+      console.log("[refreshRecords] creating contract instance...");
+      console.log("[refreshRecords] provider type:", typeof ethersReadonlyProvider, ethersReadonlyProvider?.constructor?.name);
+      console.log("[refreshRecords] abi length:", contractRef.current.abi?.length);
+      
+      // Ensure provider is ready (especially for JsonRpcProvider)
+      if (ethersReadonlyProvider && 'getNetwork' in ethersReadonlyProvider) {
+        try {
+          const network = await (ethersReadonlyProvider as ethers.JsonRpcProvider).getNetwork();
+          console.log("[refreshRecords] provider network:", network.chainId.toString());
+        } catch (netErr) {
+          console.error("[refreshRecords] provider network error:", netErr);
+        }
+      }
+      
       const contract = new ethers.Contract(
         thisAddress,
         contractRef.current.abi,
         ethersReadonlyProvider
       );
 
+      console.log("[refreshRecords] contract created, calling getRecordCount...");
+      
+      // Try direct eth_call to debug
+      if (ethersReadonlyProvider && 'send' in ethersReadonlyProvider) {
+        try {
+          const rawResult = await (ethersReadonlyProvider as ethers.JsonRpcProvider).send("eth_call", [
+            { to: thisAddress, data: "0xca267f28" }, // getRecordCount() selector
+            "latest"
+          ]);
+          console.log("[refreshRecords] raw eth_call result:", rawResult);
+        } catch (rawErr) {
+          console.error("[refreshRecords] raw eth_call error:", rawErr);
+        }
+      }
+      
       const recordCount = await contract.getRecordCount();
       const count = Number(recordCount);
+      console.log("[refreshRecords] recordCount:", count, "address:", thisAddress);
 
       const newRecords: ConsumptionRecord[] = [];
       const newGraphData: ConsumptionDataPoint[] = [];
@@ -169,6 +207,8 @@ export const useSecurePeakData = (parameters: {
         }
       }
 
+      console.log("[refreshRecords] newRecords.length:", newRecords.length, "sameChain:", sameChain.current(thisChainId));
+      
       if (sameChain.current(thisChainId)) {
         // Preserve decrypted state from existing records
         setRecords((prevRecords) => {
@@ -196,6 +236,7 @@ export const useSecurePeakData = (parameters: {
         });
       }
     } catch (e) {
+      console.error("[refreshRecords] error:", e);
       setMessage("Failed to fetch records: " + e);
     } finally {
       isRefreshingRef.current = false;
@@ -288,9 +329,13 @@ export const useSecurePeakData = (parameters: {
         const receipt = await tx.wait();
 
         setMessage(`Record created! Status: ${receipt?.status}`);
+        console.log("[createRecord] tx confirmed, calling refreshRecords");
 
         if (!isStale()) {
+          console.log("[createRecord] context not stale, refreshing...");
           await refreshRecords();
+        } else {
+          console.log("[createRecord] context is stale, skipping refresh");
         }
       } catch (e) {
         setMessage("Failed to create record: " + e);
