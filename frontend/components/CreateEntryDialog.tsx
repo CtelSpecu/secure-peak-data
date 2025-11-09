@@ -35,7 +35,8 @@ const CreateEntryDialog = ({
 }: CreateEntryDialogProps) => {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
-    timestamp: "",
+    date: "",
+    time: "",
     consumption: "",
     peak: false,
     reason: "",
@@ -45,7 +46,7 @@ const CreateEntryDialog = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.timestamp || !formData.consumption || !formData.reason) {
+    if (!formData.date || !formData.time || !formData.consumption || !formData.reason) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -54,8 +55,11 @@ const CreateEntryDialog = ({
       return;
     }
 
+    // Combine date and time into timestamp
+    const timestamp = `${formData.date}T${formData.time}`;
+
     onCreateEntry({
-      timestamp: formData.timestamp,
+      timestamp,
       consumption: Number(formData.consumption),
       peak: formData.peak,
       reason: formData.reason,
@@ -63,7 +67,8 @@ const CreateEntryDialog = ({
     });
 
     setFormData({
-      timestamp: "",
+      date: "",
+      time: "",
       consumption: "",
       peak: false,
       reason: "",
@@ -89,17 +94,31 @@ const CreateEntryDialog = ({
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="timestamp">Timestamp *</Label>
-              <Input
-                id="timestamp"
-                type="datetime-local"
-                value={formData.timestamp}
-                onChange={(e) =>
-                  setFormData({ ...formData, timestamp: e.target.value })
-                }
-                required
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="date">Date *</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) =>
+                    setFormData({ ...formData, date: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="time">Time *</Label>
+                <Input
+                  id="time"
+                  type="time"
+                  value={formData.time}
+                  onChange={(e) =>
+                    setFormData({ ...formData, time: e.target.value })
+                  }
+                  required
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
