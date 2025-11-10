@@ -128,7 +128,6 @@ export default function Home() {
   const displayGraphData =
     graphData.length > 0 ? graphData : initialGraphData;
   const displayRecords: ConsumptionRecord[] = records;
-  const hasRealRecords = records.length > 0;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
